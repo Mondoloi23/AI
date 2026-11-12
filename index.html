@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My First AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F4FA;--panel:#fff;--ink:#12142B;--mute:#646A88;--line:#DDE0EE;--acc:#5B4BFF;--onacc:#fff;--code:#EEF0F9;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0D0F1E;--panel:#171A2E;--ink:#ECEEFA;--mute:#9AA0C0;--line:#292D48;--acc:#8A80FF;--onacc:#0D0F1E;--code:#0D0F1E;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font:16px/1.5 "Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;color:inherit;cursor:pointer}
+header{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{flex:1;margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb{background:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:14px;display:flex;align-items:center;gap:5px}
+#wrap{flex:1;overflow-y:auto;padding:16px 14px}
+#msgs,#empty{max-width:720px;margin:0 auto}
+.m{display:flex;flex-direction:column;margin:0 0 14px}
+.m.u{align-items:flex-end}.m.a{align-items:flex-start}
+.b{max-width:88%;padding:10px 14px;border-radius:18px;overflow-wrap:anywhere}
+.u .b{background:var(--acc);color:var(--onacc);border-bottom-right-radius:5px}
+.a .b{background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:5px}
+.b.typing::after{content:"…";color:var(--mute)}
+.b code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:.9em}
+.b pre{background:var(--code);padding:10px;border-radius:10px;overflow-x:auto;margin:6px 0}
+.b pre code{padding:0}
+.sp{background:none;border:0;color:var(--mute);font-size:13px;padding:4px 6px}
+#empty{text-align:center;padding-top:12vh}
+#empty h2{font-size:26px;margin:0 0 6px;letter-spacing:-.02em}
+#empty p{margin:0 0 18px;color:var(--mute)}
+.chip{display:block;width:100%;max-width:340px;margin:8px auto;padding:10px 14px;border:1px solid var(--line);background:var(--panel);border-radius:14px;text-align:left}
+footer{padding:10px 12px;background:var(--panel);border-top:1px solid var(--line)}
+.att{max-width:720px;margin:0 auto 8px;display:none;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);font-size:14px}
+.att.on{display:flex}.att span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.att button{border:0;background:none;color:var(--mute)}
+#bar{max-width:720px;margin:0 auto;display:flex;gap:8px;align-items:flex-end}
+#in{flex:1;resize:none;max-height:140px;padding:10px 14px;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--ink);font:inherit;outline:none}
+#in:focus{border-color:var(--acc)}
+.rb{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--bg);flex:none}
+.rb.on{background:#E5484D;color:#fff;border-color:#E5484D}
+#go{background:var(--acc);color:var(--onacc);border:0;font-weight:700;width:auto;padding:0 16px;border-radius:22px}
+#attb{font-size:13px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:pointer}
+#file{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+#dr{position:fixed;top:0;bottom:0;left:0;width:min(300px,85vw);padding:calc(14px + env(safe-area-inset-top,0px)) 12px 14px;background:var(--panel);border-right:1px solid var(--line);transform:translateX(-102%);transition:transform .2s;z-index:5;overflow-y:auto}
+#dr.open{transform:none}
+#dr h3{margin:0 0 10px;font-size:16px}
+.ci{display:flex;gap:6px;margin-bottom:6px}
+.ci button:first-child{flex:1;text-align:left;padding:9px 10px;border:1px solid var(--line);background:none;border-radius:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci.cur button:first-child{border-color:var(--acc)}
+.ci button:last-child{border:0;background:none;color:var(--mute)}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:4;display:none}
+#ov.open{display:block}
+@media (prefers-reduced-motion:reduce){#dr{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <button class="hb" id="menu">Chats</button>
+  <h1>My First AI</h1>
+  <label class="hb"><input type="checkbox" id="imgmode"> Image</label>
+  <button class="hb" id="clear">Clear</button>
+  <button class="hb" id="new">New</button>
+</header>
+<div id="wrap">
+  <div id="empty">
+    <h2>What are we working on?</h2>
+    <p>Ask anything, or attach a PDF to summarize.</p>
+    <button class="chip">Quiz me on a topic I’m studying</button>
+    <button class="chip">Explain something complicated simply</button>
+    <button class="chip">Help me plan my week</button>
+  </div>
+  <div id="msgs"></div>
+</div>
+<footer>
+  <div class="att" id="att"><span id="attn"></span><button id="attx">Remove</button></div>
+  <div id="bar">
+    <label class="rb" id="attb" aria-label="Attach a PDF">PDF<input type="file" id="file"></label>
+    <button class="rb" id="mic" hidden aria-label="Voice input">Mic</button>
+    <textarea id="in" rows="1" placeholder="Message, or attach a PDF"></textarea>
+    <button class="rb" id="go">Send</button>
+  </div>
+</footer>
+<div id="ov"></div>
+<aside id="dr"><h3>Chat history</h3><div id="list"></div></aside>
+<script>
+const $=s=>document.querySelector(s);
+let S={chats:[],cur:null},CODE=localStorage.getItem("mfa-code")||"";
+try{S=JSON.parse(localStorage.getItem("mfa"))||S}catch(e){}
+// PDF data is kept in memory only, never saved to localStorage
+const save=()=>{try{localStorage.setItem("mfa",JSON.stringify(S,(k,v)=>k==="doc"||k==="img"?undefined:v))}catch(e){}};
+const cur=()=>S.chats.find(c=>c.id===S.cur);
+const esc=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const md=t=>t.split("```").map((p,i)=>i%2?"<pre><code>"+esc(p.replace(/^\w*\n/,""))+"</code></pre>":esc(p).replace(/`([^`\n]+)`/g,"<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>")).join("");
+const end=()=>{const w=$("#wrap");w.scrollTop=w.scrollHeight};
+const canSpeak="speechSynthesis" in window;
+let busy=false,ctl=null,att=null;
+
+function newChat(){const c={id:Date.now().toString(36),title:"New chat",msgs:[]};S.chats.unshift(c);S.cur=c.id;save();render()}
+function addMsg(m){
+  const d=document.createElement("div");d.className="m "+m.r;
+  const b=document.createElement("div");b.className="b";b.innerHTML=md(m.c);attachImg(b,m);d.appendChild(b);
+  if(m.r==="a"&&canSpeak){const s=document.createElement("button");s.className="sp";s.textContent="Listen";s.onclick=()=>speak(m.c);d.appendChild(s)}
+  $("#msgs").appendChild(d);return b;
+}
+function speak(t){try{const s=speechSynthesis;if(s.speaking){s.cancel();return}s.speak(new SpeechSynthesisUtterance(t.replace(/[`*]/g,"")))}catch(e){}}
+function renderList(){
+  const l=$("#list");l.innerHTML="";
+  S.chats.forEach(c=>{
+    const r=document.createElement("div");r.className="ci"+(c.id===S.cur?" cur":"");
+    const a=document.createElement("button");a.textContent=c.title;a.onclick=()=>{S.cur=c.id;save();render();drawer(false)};
+    const x=document.createElement("button");x.textContent="Delete";x.onclick=()=>{S.chats=S.chats.filter(k=>k.id!==c.id);if(!S.chats.length)newChat();else{if(S.cur===c.id)S.cur=S.chats[0].id;save();render()}};
+    r.append(a,x);l.appendChild(r);
+  });
+}
+function render(){const c=cur();$("#msgs").innerHTML="";$("#empty").hidden=c.msgs.length>0;c.msgs.forEach(addMsg);renderList();end()}
+function drawer(o){$("#dr").classList.toggle("open",o);$("#ov").classList.toggle("open",o)}
+function showAtt(t){$("#att").classList.toggle("on",!!(att||t));$("#attn").textContent=t||(att?att.name:"")}
+function attMsg(t){att=null;showAtt(t);setTimeout(()=>{if(!att)showAtt()},3500)}
+
+function readPdf(f){
+  if(!/pdf/i.test(f.type+f.name))return attMsg("Pick a PDF file.");
+  if(f.size>10*1024*1024)return attMsg("That PDF is over 10 MB.");
+  showAtt("Reading "+f.name+"…");
+  const r=new FileReader();
+  r.onload=()=>{att={name:f.name,data:String(r.result).split(",")[1]};showAtt()};
+  r.onerror=()=>attMsg("Could not read that file.");
+  r.readAsDataURL(f);
+}
+const toApi=m=>m.r==="a"?{role:"assistant",content:m.c}:m.doc
+  ?{role:"user",content:[{type:"document",source:{type:"base64",media_type:"application/pdf",data:m.doc.data}},{type:"text",text:m.c}]}
+  :{role:"user",content:m.c};
+
+async function send(text){
+  if(busy)return;
+  text=text.trim();const at=att;
+  if(!text&&at)text="Summarize this PDF: the main point first, then the key points, then anything I should act on.";
+  if(!text)return;
+  if($("#imgmode").checked&&!at)return makeImage(text);
+  att=null;showAtt();
+  const c=cur(),u={r:"u",c:text+(at?"\n[PDF attached: "+at.name+"]":""),doc:at||undefined},a={r:"a",c:""};
+  c.msgs.push(u,a);if(c.title==="New chat")c.title=text.slice(0,40);
+  $("#empty").hidden=true;addMsg(u);const b=addMsg(a);b.classList.add("typing");
+  $("#in").value="";grow();
+  const msgs=c.msgs.slice(0,-1).slice(-20);
+  while(msgs.length&&msgs[0].r!=="u")msgs.shift();
+  busy=true;ctl=new AbortController();$("#go").textContent="Stop";
+  try{
+    const r=await fetch("/api/chat",{method:"POST",signal:ctl.signal,headers:{"Content-Type":"application/json","x-access-code":CODE},body:JSON.stringify({messages:msgs.map(toApi)})});
+    if(r.status===401){CODE=prompt("Enter the access code")||"";localStorage.setItem("mfa-code",CODE);throw new Error("Access code needed. Send your message again.")}
+    if(!r.ok||!r.body)throw new Error((await r.json().catch(()=>({}))).error||"Server error "+r.status);
+    const rd=r.body.getReader(),dec=new TextDecoder();let buf="";
+    for(;;){
+      const {done,value}=await rd.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const parts=buf.split("\n\n");buf=parts.pop();
+      for(const p of parts){
+        if(!p.startsWith("data: "))continue;
+        const o=JSON.parse(p.slice(6));
+        if(o.error)throw new Error(o.error);
+        if(o.t){a.c+=o.t;b.classList.remove("typing");b.innerHTML=md(a.c);end()}
+      }
+    }
+  }catch(e){
+    if(ctl.signal.aborted)a.c=a.c||"Stopped.";
+    else a.c=a.c||(e.message||"Something went wrong. Try again.");
+  }
+  b.classList.remove("typing");b.innerHTML=md(a.c);busy=false;$("#go").textContent="Send";save();renderList();end();
+}
+function attachImg(b,m){
+  if(!m.img)return;
+  const i=document.createElement("img");i.src=m.img;i.alt=m.c;
+  i.style.cssText="max-width:100%;border-radius:12px;margin-top:8px;display:block";b.appendChild(i);
+  const d=document.createElement("a");d.href=m.img;d.download="my-first-ai.png";d.textContent="Save image";
+  d.style.cssText="display:inline-block;margin-top:6px;font-size:14px;color:var(--acc)";b.appendChild(d);
+}
+async function makeImage(text){
+  const c=cur(),u={r:"u",c:"Image: "+text},a={r:"a",c:"Creating your image…"};
+  c.msgs.push(u,a);if(c.title==="New chat")c.title=text.slice(0,40);
+  $("#empty").hidden=true;addMsg(u);const b=addMsg(a);b.classList.add("typing");
+  $("#in").value="";grow();
+  busy=true;ctl=new AbortController();$("#go").textContent="Stop";
+  try{
+    const r=await fetch("/api/image",{method:"POST",signal:ctl.signal,headers:{"Content-Type":"application/json","x-access-code":CODE},body:JSON.stringify({prompt:text})});
+    const j=await r.json().catch(()=>({}));
+    if(r.status===401){CODE=prompt("Enter the access code")||"";localStorage.setItem("mfa-code",CODE);throw new Error("Access code needed. Send your request again.")}
+    if(!r.ok)throw new Error(j.error||"Server error "+r.status);
+    a.c="Here’s your image: "+text;a.img=j.url;
+  }catch(e){a.c=ctl.signal.aborted?"Stopped.":(e.message||"Could not create the image.")}
+  b.classList.remove("typing");b.innerHTML=md(a.c);attachImg(b,a);
+  busy=false;$("#go").textContent="Send";save();renderList();end();
+}
+function grow(){const t=$("#in");t.style.height="auto";t.style.height=Math.min(t.scrollHeight,140)+"px"}
+
+$("#go").onclick=()=>busy?ctl.abort():send($("#in").value);
+$("#in").oninput=grow;
+$("#in").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey&&innerWidth>700){e.preventDefault();send($("#in").value)}};
+$("#new").onclick=()=>{if(!busy)newChat()};
+$("#clear").onclick=()=>{if(busy)return;const c=cur();c.msgs=[];c.title="New chat";save();render()};
+$("#menu").onclick=()=>drawer(true);$("#ov").onclick=()=>drawer(false);
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>send(b.textContent));
+$("#file").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)readPdf(f)};
+$("#imgmode").onchange=e=>{$("#in").placeholder=e.target.checked?"Describe the image you want":"Message, or attach a PDF"};
+$("#attx").onclick=()=>{att=null;showAtt()};
+
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){
+  const rec=new SR(),mic=$("#mic");mic.hidden=false;
+  rec.onresult=e=>{const t=$("#in");t.value=(t.value+" "+e.results[0][0].transcript).trim();grow()};
+  rec.onend=()=>mic.classList.remove("on");
+  mic.onclick=()=>{if(mic.classList.contains("on"))rec.stop();else{try{rec.start();mic.classList.add("on")}catch(e){}}};
+}
+if(!cur()){if(!S.chats.length)newChat();else S.cur=S.chats[0].id}
+render();
+</script>
+</body>
+</html>
